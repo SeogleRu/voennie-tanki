@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8"/>
-  <title>Военные Танки </title>
+  <meta charset="utf-8" />
+  <title>Военные Танки</title>
   <style>
     body {
       margin: 0; padding: 0;
@@ -44,7 +44,7 @@
 </head>
 <body>
   <div id="ui-layer">
-    <h1>Военные танки</h1>
+   <h1>Военные Танки</h1>
     <div class="hud-row"><b>Игрок:</b> <span id="player-name">Гость</span></div>
     <div class="hud-row"><b>Счёт:</b> <span id="score">0</span></div>
     <div class="hud-row"><b>Жизни:</b> <span id="lives">3</span></div>
@@ -69,10 +69,11 @@
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
     const TILE = 32;
-    const COLS = canvas.width / TILE;
-    const ROWS = canvas.height / TILE;
+    const COLS = canvas.width / TILE;   // 20
+    const ROWS = canvas.height / TILE;  // 15
 
     // 0=пусто, 1=кирпич, 2=бетон, 3=база
+    // 15 строк × 20 столбцов — соответствует ROWS × COLS
     let map = [
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
@@ -84,6 +85,9 @@
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
       [1,0,1,0,0,1,1,0,0,0,1,1,0,0,1,0,0,0,0,1],
       [1,0,1,0,0,1,1,0,0,0,1,1,0,0,1,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
       [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
       [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
     ];
@@ -116,22 +120,15 @@
         this.x += dx; this.y += dy;
 
         if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
-          this.alive = false;
-          return;
+          this.alive = false; return;
         }
         const col = Math.floor((this.x + this.size/2) / TILE);
         const row = Math.floor((this.y + this.size/2) / TILE);
         if (col >= 0 && col < COLS && row >= 0 && row < ROWS) {
           const tile = map[row][col];
-          if (tile === 1) {
-            map[row][col] = 0;
-            this.alive = false;
-          } else if (tile === 2) {
-            this.alive = false;
-          } else if (tile === 3) {
-            this.alive = false;
-            baseAlive = false;
-          }
+          if (tile === 1) { map[row][col] = 0; this.alive = false; }
+          else if (tile === 2) { this.alive = false; }
+          else if (tile === 3) { this.alive = false; baseAlive = false; }
         }
       }
       intersectsTank(tank) {
@@ -240,6 +237,7 @@
     function spawnEnemy() {
       if (enemiesToSpawn <= 0) return;
       const sp = spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
+      // Не спавним, если точка занята
       for (const t of allTanks) {
         if (t.alive && t.x === sp.x * TILE && t.y === sp.y * TILE) return;
       }
@@ -251,6 +249,7 @@
     }
 
     function initGame() {
+      // Сброс карты
       map = [
         [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
         [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
@@ -263,9 +262,13 @@
         [1,0,1,0,0,1,1,0,0,0,1,1,0,0,1,0,0,0,0,1],
         [1,0,1,0,0,1,1,0,0,0,1,1,0,0,1,0,0,0,0,1],
         [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+        [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+        [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+        [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
         [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
       ];
-      player = new Tank(COLS/2 * TILE, (ROWS - 3) * TILE, true);
+      // Игрок спавнится в нижней части на свободной клетке (ряд 13, колонка 9)
+      player = new Tank(9 * TILE, (ROWS - 2) * TILE, true);
       player.dir = 0;
       enemies = [];
       allTanks = [player];
@@ -373,8 +376,8 @@
               if (lives <= 0) {
                 gameOver(false);
               } else if (gameRunning) {
-                player.x = COLS/2 * TILE;
-                player.y = (ROWS - 3) * TILE;
+                player.x = 9 * TILE;
+                player.y = (ROWS - 2) * TILE;
                 player.alive = true;
               }
             }, 1500);
@@ -383,11 +386,10 @@
         }
       }
 
-      // Пуля по базе
+      // Очистка мёртвых пуль у всех танков
       for (const t of allTanks) {
         for (let i = t.bullets.length - 1; i >= 0; i--) {
-          const b = t.bullets[i];
-          if (!b.alive) { t.bullets.splice(i, 1); }
+          if (!t.bullets[i].alive) t.bullets.splice(i, 1);
         }
       }
     }
@@ -440,7 +442,7 @@
         spawnTimer = 0;
       }
 
-      // Очистка мёртвых врагов
+      // Очистка мёртвых
       enemies = enemies.filter(e => e.alive);
       allTanks = allTanks.filter(t => t.alive || t === player);
 
@@ -448,20 +450,14 @@
       if (player.alive) player.draw();
       enemies.forEach(e => e.draw());
 
-      // Проверка условий конца игры
-      if (!baseAlive) {
-        gameOver(false);
-        return;
-      }
-      if (enemiesToSpawn === 0 && enemies.length === 0) {
-        gameOver(true);
-        return;
-      }
+      // Проверка конца игры
+      if (!baseAlive) { gameOver(false); return; }
+      if (enemiesToSpawn === 0 && enemies.length === 0) { gameOver(true); return; }
 
       requestAnimationFrame(loop);
     }
 
-    // Восстановление ника из localStorage
+    // Восстановление ника
     const savedName = localStorage.getItem('battle-city-nickname');
     if (savedName) {
       document.getElementById('nickname-input').value = savedName;
